@@ -74,6 +74,68 @@ nav a:hover {
   background: var(--primary-soft);
 }
 
+.admin-spotlight {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #c8b7ee;
+  background: linear-gradient(135deg, #efe3ff 0%, #dfebff 52%, #d6f0ff 100%);
+}
+
+.admin-spotlight::after {
+  content: '';
+  position: absolute;
+  width: 220px;
+  height: 220px;
+  right: -76px;
+  top: -86px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.76) 0%, rgba(255, 255, 255, 0) 72%);
+  pointer-events: none;
+}
+
+.admin-title {
+  font-size: clamp(1.5rem, 4.2vw, 2.15rem);
+  color: #2f2450;
+}
+
+.admin-subtitle {
+  margin-top: 0.45rem;
+  font-weight: 600;
+  color: #4c4660;
+}
+
+.admin-nav-panel {
+  padding-top: 0.9rem;
+}
+
+.admin-logout-panel {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.admin-logout-panel h3 {
+  font-size: 1rem;
+}
+
+.admin-logout-panel button {
+  width: fit-content;
+}
+
+.admin-grid button,
+.admin-grid input,
+.admin-grid select {
+  font-size: 0.9rem;
+}
+
+.admin-grid button {
+  padding: 0.54rem 0.82rem;
+  border-radius: 14px;
+}
+
+.admin-grid th,
+.admin-grid td {
+  font-size: 0.9rem;
+}
+
 main {
   padding: 1.25rem;
 }
@@ -425,6 +487,30 @@ button:disabled {
 
   .layout-grid:not(.admin-grid) .badge {
     min-width: 108px;
+  }
+
+  .admin-grid button,
+  .admin-grid input,
+  .admin-grid select {
+    font-size: 0.84rem;
+  }
+
+  .admin-grid th,
+  .admin-grid td {
+    font-size: 0.84rem;
+  }
+
+  .admin-grid .table-panel th,
+  .admin-grid .table-panel td {
+    padding: 0.62rem 0.3rem;
+  }
+
+  .admin-grid .public-nav a {
+    min-width: 0;
+  }
+
+  .admin-logout-panel button {
+    width: 100%;
   }
 
   .winner-content {

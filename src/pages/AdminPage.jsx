@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   createParticipant,
   deleteParticipant,
@@ -304,14 +305,10 @@ function AdminPage() {
 
   return (
     <section className="layout-grid admin-grid">
-      <article className="panel">
-        <div className="panel-head">
-          <h2>Panel Admin</h2>
-          <button type="button" className="ghost" onClick={onLogout} disabled={saving}>
-            Logout
-          </button>
-        </div>
-        <p>Periode aktif: {readablePeriodLabel(period?.label)}</p>
+      <article className="panel hero-panel admin-spotlight">
+        <div className="winner-kicker">Area Pengelolaan</div>
+        <h2 className="admin-title">Panel Admin</h2>
+        <p className="admin-subtitle">Periode aktif: {readablePeriodLabel(period?.label)}</p>
       </article>
 
       <article className="panel">
@@ -428,6 +425,20 @@ function AdminPage() {
       {error ? <p className="status-message error">{error}</p> : null}
       <p className="hint">Nominal tersimpan saat input kehilangan fokus.</p>
       <p className="hint">Total nilai contoh: {currency(1500000)}</p>
+
+      <article className="panel public-nav-panel admin-nav-panel">
+        <nav className="public-nav" aria-label="Navigasi halaman">
+          <Link to="/">Halaman Publik</Link>
+          <Link to="/admin">Panel Admin</Link>
+        </nav>
+      </article>
+
+      <article className="panel admin-logout-panel">
+        <h3>Keluar Admin</h3>
+        <button type="button" className="ghost" onClick={onLogout} disabled={saving}>
+          Logout
+        </button>
+      </article>
     </section>
   )
 }
