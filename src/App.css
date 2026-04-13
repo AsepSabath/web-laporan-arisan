@@ -263,8 +263,8 @@ button:disabled {
     justify-content: space-between;
   }
 
-  th:nth-child(3),
-  td:nth-child(3) {
+  .layout-grid:not(.admin-grid) th:nth-child(3),
+  .layout-grid:not(.admin-grid) td:nth-child(3) {
     display: none;
   }
 }
