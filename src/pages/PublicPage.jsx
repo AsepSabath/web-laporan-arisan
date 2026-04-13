@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   getActivePeriod,
   getParticipants,
@@ -182,6 +183,13 @@ function PublicPage() {
             </tbody>
           </table>
         )}
+      </article>
+
+      <article className="panel public-nav-panel">
+        <nav className="public-nav" aria-label="Navigasi halaman">
+          <Link to="/">Halaman Publik</Link>
+          <Link to="/admin">Panel Admin</Link>
+        </nav>
       </article>
     </section>
   )

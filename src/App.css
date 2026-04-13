@@ -48,6 +48,32 @@ nav a:hover {
   background: var(--primary-soft);
 }
 
+.public-nav-panel {
+  padding-top: 0.9rem;
+}
+
+.public-nav {
+  display: flex;
+  justify-content: center;
+  gap: 0.7rem;
+  flex-wrap: wrap;
+}
+
+.public-nav a {
+  text-decoration: none;
+  font-weight: 600;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 0.56rem 1rem;
+  background: var(--bg-elevated);
+}
+
+.public-nav a:hover {
+  border-color: var(--primary);
+  color: var(--primary-soft-ink);
+  background: var(--primary-soft);
+}
+
 main {
   padding: 1.25rem;
 }
@@ -362,6 +388,15 @@ button:disabled {
   nav {
     width: 100%;
     justify-content: space-between;
+  }
+
+  .public-nav {
+    justify-content: stretch;
+  }
+
+  .public-nav a {
+    flex: 1;
+    text-align: center;
   }
 
   .layout-grid:not(.admin-grid) th:nth-child(3),
