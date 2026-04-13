@@ -131,10 +131,14 @@ th {
 }
 
 .badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  padding: 0.24rem 0.72rem;
+  padding: 0.28rem 0.78rem;
   font-size: 0.84rem;
   font-weight: 600;
+  border: 1px solid transparent;
 }
 
 .badge.paid {
@@ -145,6 +149,18 @@ th {
 .badge.unpaid {
   background: var(--primary-soft);
   color: var(--primary-soft-ink);
+}
+
+.layout-grid:not(.admin-grid) .badge.paid {
+  background: #41e37f;
+  border-color: #2fca6c;
+  color: #06351a;
+}
+
+.layout-grid:not(.admin-grid) .badge.unpaid {
+  background: #ff5f6d;
+  border-color: #e34756;
+  color: #ffffff;
 }
 
 .stacked-form,
@@ -266,5 +282,28 @@ button:disabled {
   .layout-grid:not(.admin-grid) th:nth-child(3),
   .layout-grid:not(.admin-grid) td:nth-child(3) {
     display: none;
+  }
+
+  .layout-grid:not(.admin-grid) .table-panel {
+    padding: 0.9rem;
+  }
+
+  .layout-grid:not(.admin-grid) .table-panel table {
+    margin-top: 0.7rem;
+  }
+
+  .layout-grid:not(.admin-grid) .table-panel th,
+  .layout-grid:not(.admin-grid) .table-panel td {
+    padding: 0.75rem 0.35rem;
+    vertical-align: middle;
+  }
+
+  .layout-grid:not(.admin-grid) .table-panel th:nth-child(2),
+  .layout-grid:not(.admin-grid) .table-panel td:nth-child(2) {
+    text-align: right;
+  }
+
+  .layout-grid:not(.admin-grid) .badge {
+    min-width: 108px;
   }
 }
