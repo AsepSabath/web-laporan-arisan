@@ -39,18 +39,37 @@ export async function getParticipants() {
 }
 
 export async function updateParticipantsOrder(participantIds) {
-  const updates = participantIds.map((participantId, index) =>
+  if (!participantIds.length) {
+    return
+  }
+
+  // Phase 1: move all selected rows to a high temporary range to avoid unique clashes.
+  const tempOffset = 100000
+  const tempUpdates = participantIds.map((participantId, index) =>
+    supabase
+      .from('participants')
+      .update({ sort_order: tempOffset + index + 1 })
+      .eq('id', participantId),
+  )
+
+  const tempResults = await Promise.all(tempUpdates)
+  const tempFailed = tempResults.find((result) => result.error)
+  if (tempFailed?.error) {
+    throw new Error(tempFailed.error.message)
+  }
+
+  // Phase 2: write the final normalized 1..N ordering.
+  const finalUpdates = participantIds.map((participantId, index) =>
     supabase
       .from('participants')
       .update({ sort_order: index + 1 })
       .eq('id', participantId),
   )
 
-  const results = await Promise.all(updates)
-  const failed = results.find((result) => result.error)
-
-  if (failed?.error) {
-    throw new Error(failed.error.message)
+  const finalResults = await Promise.all(finalUpdates)
+  const finalFailed = finalResults.find((result) => result.error)
+  if (finalFailed?.error) {
+    throw new Error(finalFailed.error.message)
   }
 }
 
