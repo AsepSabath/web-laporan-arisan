@@ -132,9 +132,9 @@ function PublicPage() {
               onClick={() => setShowWinnerPopup(false)}
               aria-label="Tutup popup"
             >
-              x
+              X Tutup
             </button>
-            <p className="winner-popup-kicker">Pemenang Periode Berjalan</p>
+            <p className="winner-popup-kicker">PEMENANG PERIODE SAAT INI</p>
             <h3>{winnerReady ? winnerName : 'Belum ditentukan'}</h3>
             <p>Periode: {readablePeriodLabel(period?.label)}</p>
           </article>

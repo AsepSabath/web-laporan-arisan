@@ -169,14 +169,19 @@ main {
 }
 
 .winner-popup-card {
-  width: min(480px, 100%);
+  width: min(500px, 100%);
+  min-height: 300px;
   position: relative;
+  display: grid;
+  align-content: center;
+  justify-items: center;
   border-radius: 22px;
   border: 1px solid #c8b7ee;
   background: linear-gradient(140deg, #efe3ff 0%, #dfeaff 56%, #d8f0ff 100%);
   box-shadow: var(--shadow-2);
-  padding: 1.2rem 1.1rem 1rem;
+  padding: 1.7rem 1.3rem;
   animation: winnerReveal 0.32s ease-out both;
+  text-align: center;
 }
 
 .winner-popup-kicker {
@@ -189,31 +194,35 @@ main {
 }
 
 .winner-popup-card h3 {
-  margin-top: 0.45rem;
+  margin-top: 0.65rem;
+  margin-bottom: 0.6rem;
   font-size: clamp(1.3rem, 5vw, 1.9rem);
+  line-height: 1.2;
   color: #2f2450;
 }
 
 .winner-popup-card p {
-  margin-top: 0.3rem;
+  margin-top: 0.35rem;
   color: #4c4660;
   font-weight: 600;
 }
 
 .winner-popup-close {
   position: absolute;
-  top: 0.5rem;
-  right: 0.5rem;
-  width: 30px;
-  height: 30px;
+  top: 0.75rem;
+  right: 0.75rem;
   border-radius: 999px;
-  display: grid;
-  place-items: center;
-  border: 1px solid #d63a48;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.36rem 0.7rem;
+  border: 1px solid #bf2f3d;
   background: #ff5f6d;
   color: #fff;
   font-weight: 700;
-  line-height: 1;
+  font-size: 0.78rem;
+  letter-spacing: 0.01em;
+  line-height: 1.1;
   box-shadow: none;
 }
 
@@ -603,7 +612,8 @@ button:disabled {
 
   .winner-popup-card {
     border-radius: 18px;
-    padding: 1rem 0.9rem 0.9rem;
+    min-height: 280px;
+    padding: 1.45rem 0.95rem;
   }
 
   .winner-content {
