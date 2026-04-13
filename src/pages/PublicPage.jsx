@@ -158,8 +158,6 @@ function PublicPage() {
         </div>
       </article>
 
-        </article>
-
         <article className="panel stats-panel">
           <h3>Ringkasan Pembayaran</h3>
           <div className="stats">
