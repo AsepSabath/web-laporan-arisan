@@ -136,6 +136,14 @@ nav a:hover {
   font-size: 0.9rem;
 }
 
+.admin-grid .table-panel {
+  overflow-x: auto;
+}
+
+.admin-grid .table-panel table {
+  min-width: 760px;
+}
+
 main {
   padding: 1.25rem;
 }
@@ -353,6 +361,18 @@ table {
   margin-top: 0.8rem;
 }
 
+.reorder-actions {
+  display: flex;
+  gap: 0.35rem;
+}
+
+.mini-btn {
+  padding: 0.38rem 0.55rem;
+  border-radius: 10px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
 th,
 td {
   text-align: left;
@@ -567,6 +587,10 @@ button:disabled {
   .admin-grid .table-panel th,
   .admin-grid .table-panel td {
     padding: 0.62rem 0.3rem;
+  }
+
+  .admin-grid .table-panel table {
+    min-width: 680px;
   }
 
   .admin-grid .public-nav a {

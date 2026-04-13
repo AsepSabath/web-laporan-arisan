@@ -13,6 +13,7 @@ import {
   signOutAdmin,
   updatePeriodLabel,
   updatePayment,
+  updateParticipantsOrder,
   updateWinner,
 } from '../lib/api'
 
@@ -235,6 +236,35 @@ function AdminPage() {
     }
   }
 
+  async function onMoveParticipant(participantId, direction) {
+    const currentIndex = participants.findIndex((participant) => participant.id === participantId)
+
+    if (currentIndex === -1) {
+      return
+    }
+
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1
+
+    if (targetIndex < 0 || targetIndex >= participants.length) {
+      return
+    }
+
+    const reordered = [...participants]
+    const [moved] = reordered.splice(currentIndex, 1)
+    reordered.splice(targetIndex, 0, moved)
+
+    try {
+      setSaving(true)
+      setError('')
+      await updateParticipantsOrder(reordered.map((participant) => participant.id))
+      await loadAdminData()
+    } catch (err) {
+      setError(err.message || 'Gagal mengubah urutan peserta')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   async function onUpdatePeriodDate(event) {
     event.preventDefault()
 
@@ -373,6 +403,7 @@ function AdminPage() {
             <thead>
               <tr>
                 <th>Nama</th>
+                <th>Urutan</th>
                 <th>Status</th>
                 <th>Nominal</th>
                 <th>Aksi</th>
@@ -382,6 +413,32 @@ function AdminPage() {
               {paymentRows.map(({ participant, payment }) => (
                 <tr key={participant.id}>
                   <td>{participant.name}</td>
+                  <td>
+                    <div className="reorder-actions">
+                      <button
+                        type="button"
+                        className="ghost mini-btn"
+                        onClick={() => onMoveParticipant(participant.id, 'up')}
+                        disabled={saving || !payment || participant.id === paymentRows[0]?.participant.id}
+                        aria-label={`Naikkan urutan ${participant.name}`}
+                      >
+                        Naik
+                      </button>
+                      <button
+                        type="button"
+                        className="ghost mini-btn"
+                        onClick={() => onMoveParticipant(participant.id, 'down')}
+                        disabled={
+                          saving ||
+                          !payment ||
+                          participant.id === paymentRows[paymentRows.length - 1]?.participant.id
+                        }
+                        aria-label={`Turunkan urutan ${participant.name}`}
+                      >
+                        Turun
+                      </button>
+                    </div>
+                  </td>
                   <td>
                     <select
                       value={payment?.status || 'unpaid'}

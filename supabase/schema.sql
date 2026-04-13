@@ -20,6 +20,23 @@ create table if not exists participants (
   created_at timestamptz not null default now()
 );
 
+alter table participants
+  add column if not exists sort_order integer;
+
+with ranked as (
+  select id, row_number() over (order by created_at, name, id) as next_order
+  from participants
+)
+update participants p
+set sort_order = ranked.next_order
+from ranked
+where p.id = ranked.id
+  and p.sort_order is null;
+
+create unique index if not exists participants_sort_order_idx
+  on participants (sort_order)
+  where sort_order is not null;
+
 create table if not exists payments (
   id uuid primary key default gen_random_uuid(),
   participant_id uuid not null references participants(id) on delete cascade,

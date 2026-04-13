@@ -15,16 +15,43 @@ export async function getActivePeriod() {
 }
 
 export async function getParticipants() {
-  const { data, error } = await supabase
+  const orderedQuery = await supabase
     .from('participants')
     .select('*')
+    .order('sort_order', { ascending: true, nullsFirst: false })
     .order('name', { ascending: true })
 
-  if (error) {
-    throw new Error(error.message)
+  // Backward-compatible fallback if sort_order column is not available yet.
+  if (orderedQuery.error) {
+    const fallbackQuery = await supabase
+      .from('participants')
+      .select('*')
+      .order('name', { ascending: true })
+
+    if (fallbackQuery.error) {
+      throw new Error(fallbackQuery.error.message)
+    }
+
+    return fallbackQuery.data
   }
 
-  return data
+  return orderedQuery.data
+}
+
+export async function updateParticipantsOrder(participantIds) {
+  const updates = participantIds.map((participantId, index) =>
+    supabase
+      .from('participants')
+      .update({ sort_order: index + 1 })
+      .eq('id', participantId),
+  )
+
+  const results = await Promise.all(updates)
+  const failed = results.find((result) => result.error)
+
+  if (failed?.error) {
+    throw new Error(failed.error.message)
+  }
 }
 
 export async function getPaymentsByPeriod(periodId) {
@@ -62,9 +89,31 @@ export async function ensurePaymentsForPeriod(periodId, participants) {
 }
 
 export async function createParticipant(name, activePeriodId) {
+  let nextSortOrder = null
+
+  const lastOrderQuery = await supabase
+    .from('participants')
+    .select('sort_order')
+    .not('sort_order', 'is', null)
+    .order('sort_order', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  if (!lastOrderQuery.error) {
+    nextSortOrder = Number(lastOrderQuery.data?.sort_order || 0) + 1
+  }
+
+  const insertPayload = {
+    name: name.trim(),
+  }
+
+  if (nextSortOrder !== null) {
+    insertPayload.sort_order = nextSortOrder
+  }
+
   const { data, error } = await supabase
     .from('participants')
-    .insert({ name: name.trim() })
+    .insert(insertPayload)
     .select('*')
     .single()
 
