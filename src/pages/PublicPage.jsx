@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
-  ensurePaymentsForPeriod,
   getActivePeriod,
   getParticipants,
   getPaymentsByPeriod,
@@ -62,9 +61,6 @@ function PublicPage() {
 
         setPeriod(activePeriod)
         setParticipants(participantRows)
-
-        await ensurePaymentsForPeriod(activePeriod.id, participantRows)
-
         const paymentRows = await getPaymentsByPeriod(activePeriod.id)
         setPayments(paymentRows)
       } catch (err) {
