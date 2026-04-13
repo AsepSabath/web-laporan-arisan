@@ -1,0 +1,167 @@
+import { useEffect, useMemo, useState } from 'react'
+import {
+  ensurePaymentsForPeriod,
+  getActivePeriod,
+  getParticipants,
+  getPaymentsByPeriod,
+} from '../lib/api'
+
+function currency(value) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(value)
+}
+
+function parseRangeFromLabel(label) {
+  const match = String(label || '')
+    .trim()
+    .match(/^(\d{4}-\d{2}-\d{2})\s*-\s*(\d{4}-\d{2}-\d{2})$/)
+
+  if (!match) {
+    return { startDate: '', endDate: '' }
+  }
+
+  return { startDate: match[1], endDate: match[2] }
+}
+
+function readablePeriodLabel(label) {
+  const { startDate, endDate } = parseRangeFromLabel(label)
+
+  if (!startDate || !endDate) {
+    return label || '-'
+  }
+
+  const formatter = new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: 'long',
+    year: 'numeric',
+  })
+
+  return `${formatter.format(new Date(startDate))} - ${formatter.format(new Date(endDate))}`
+}
+
+function PublicPage() {
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [period, setPeriod] = useState(null)
+  const [participants, setParticipants] = useState([])
+  const [payments, setPayments] = useState([])
+
+  useEffect(() => {
+    async function loadData() {
+      try {
+        setLoading(true)
+        setError('')
+
+        const [activePeriod, participantRows] = await Promise.all([
+          getActivePeriod(),
+          getParticipants(),
+        ])
+
+        setPeriod(activePeriod)
+        setParticipants(participantRows)
+
+        await ensurePaymentsForPeriod(activePeriod.id, participantRows)
+
+        const paymentRows = await getPaymentsByPeriod(activePeriod.id)
+        setPayments(paymentRows)
+      } catch (err) {
+        setError(err.message || 'Gagal mengambil data publik')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    loadData()
+  }, [])
+
+  const participantRows = useMemo(() => {
+    const paymentMap = new Map(payments.map((item) => [item.participant_id, item]))
+
+    return participants.map((participant) => {
+      const payment = paymentMap.get(participant.id)
+      return {
+        ...participant,
+        status: payment?.status || 'unpaid',
+        amount: Number(payment?.amount || 0),
+      }
+    })
+  }, [participants, payments])
+
+  const stats = useMemo(() => {
+    const paidCount = participantRows.filter((item) => item.status === 'paid').length
+    const unpaidCount = participantRows.length - paidCount
+    const totalCollected = participantRows.reduce((sum, item) => sum + item.amount, 0)
+
+    return { paidCount, unpaidCount, totalCollected }
+  }, [participantRows])
+
+  if (loading) {
+    return <p className="status-message">Memuat data publik...</p>
+  }
+
+  if (error) {
+    return <p className="status-message error">{error}</p>
+  }
+
+  return (
+    <section className="layout-grid">
+      <article className="panel hero-panel">
+        <h2>Periode Aktif: {readablePeriodLabel(period?.label)}</h2>
+        <p className="winner">Pemenang: {period?.winner_name || 'Belum ditentukan'}</p>
+      </article>
+
+      <article className="panel stats-panel">
+        <h3>Ringkasan Pembayaran</h3>
+        <div className="stats">
+          <div>
+            <span>Sudah Bayar</span>
+            <strong>{stats.paidCount}</strong>
+          </div>
+          <div>
+            <span>Belum Bayar</span>
+            <strong>{stats.unpaidCount}</strong>
+          </div>
+          <div>
+            <span>Total Terkumpul</span>
+            <strong>{currency(stats.totalCollected)}</strong>
+          </div>
+        </div>
+      </article>
+
+      <article className="panel table-panel">
+        <h3>Status Peserta</h3>
+        {participantRows.length === 0 ? (
+          <p>Belum ada peserta.</p>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>Nama Peserta</th>
+                <th>Status</th>
+                <th>Nominal</th>
+              </tr>
+            </thead>
+            <tbody>
+              {participantRows.map((item) => (
+                <tr key={item.id}>
+                  <td>{item.name}</td>
+                  <td>
+                    <span className={`badge ${item.status}`}>
+                      {item.status === 'paid' ? 'Sudah Bayar' : 'Belum Bayar'}
+                    </span>
+                  </td>
+                  <td>{currency(item.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+      </article>
+    </section>
+  )
+}
+
+export default PublicPage
