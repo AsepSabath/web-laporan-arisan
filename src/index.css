@@ -1,15 +1,25 @@
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Manrope:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Flex:opsz,wght@8..144,400;8..144,500;8..144,600;8..144,700&family=DM+Sans:wght@500;700&display=swap');
 
 :root {
-  --bg-cream: #f8f4e7;
-  --bg-paper: #fffdf6;
-  --ink: #1a1a1a;
-  --muted: #5f5a4f;
-  --line: #dfd6bc;
-  --accent: #0d8f6f;
-  --accent-soft: #dbf3ec;
-  --danger: #b43232;
-  --danger-soft: #ffe4df;
+  color-scheme: light;
+  --bg: #f7f2fa;
+  --bg-elevated: #fff7ff;
+  --bg-surface: #fef7ff;
+  --bg-surface-2: #f6eff7;
+  --ink: #1d1b20;
+  --muted: #49454f;
+  --line: #cac4d0;
+  --outline-2: #e7dfe9;
+  --primary: #6750a4;
+  --on-primary: #ffffff;
+  --primary-soft: #eaddff;
+  --primary-soft-ink: #4f378a;
+  --secondary-soft: #d7e3ff;
+  --secondary-soft-ink: #1f3b65;
+  --danger: #b3261e;
+  --danger-soft: #f9dedc;
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.18), 0 1px 3px 1px rgba(0, 0, 0, 0.1);
+  --shadow-2: 0 2px 6px rgba(0, 0, 0, 0.16), 0 1px 2px rgba(0, 0, 0, 0.12);
 }
 
 * {
@@ -18,18 +28,19 @@
 
 body {
   margin: 0;
-  font-family: 'Manrope', sans-serif;
+  font-family: 'Roboto Flex', sans-serif;
   color: var(--ink);
-  background:
-    radial-gradient(circle at top right, #f3d9b1 0, #f8f4e7 35%),
-    linear-gradient(180deg, #f8f4e7 0%, #f6f1e1 100%);
+  background: radial-gradient(circle at 8% -15%, #e9ddff 0, #f7f2fa 34%),
+    radial-gradient(circle at 98% 12%, #d6f2ff 0, transparent 38%),
+    linear-gradient(180deg, #f8f3fb 0%, #f2ecf5 100%);
   min-height: 100vh;
 }
 
 h1,
 h2,
 h3 {
-  font-family: 'Fraunces', serif;
+  font-family: 'DM Sans', sans-serif;
+  letter-spacing: -0.01em;
   margin: 0;
 }
 
@@ -39,6 +50,13 @@ p {
 
 a {
   color: inherit;
+}
+
+a,
+button,
+input,
+select {
+  transition: all 0.2s ease;
 }
 
 button,
