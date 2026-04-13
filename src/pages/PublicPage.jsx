@@ -61,6 +61,7 @@ function PublicPage() {
   const [period, setPeriod] = useState(null)
   const [participants, setParticipants] = useState([])
   const [payments, setPayments] = useState([])
+  const [showWinnerPopup, setShowWinnerPopup] = useState(false)
 
   useEffect(() => {
     async function loadData() {
@@ -77,6 +78,7 @@ function PublicPage() {
         setParticipants(participantRows)
         const paymentRows = await getPaymentsByPeriod(activePeriod.id)
         setPayments(paymentRows)
+        setShowWinnerPopup(true)
       } catch (err) {
         setError(err.message || 'Gagal mengambil data publik')
       } finally {
@@ -120,8 +122,27 @@ function PublicPage() {
   const winnerReady = Boolean(winnerName)
 
   return (
-    <section className="layout-grid">
-      <article className="panel hero-panel winner-spotlight">
+    <>
+      {showWinnerPopup ? (
+        <div className="winner-popup-backdrop" role="dialog" aria-modal="true" aria-label="Pemenang periode aktif">
+          <article className="winner-popup-card">
+            <button
+              type="button"
+              className="winner-popup-close"
+              onClick={() => setShowWinnerPopup(false)}
+              aria-label="Tutup popup"
+            >
+              x
+            </button>
+            <p className="winner-popup-kicker">Pemenang Periode Berjalan</p>
+            <h3>{winnerReady ? winnerName : 'Belum ditentukan'}</h3>
+            <p>Periode: {readablePeriodLabel(period?.label)}</p>
+          </article>
+        </div>
+      ) : null}
+
+      <section className="layout-grid">
+        <article className="panel hero-panel winner-spotlight">
         <div className="winner-kicker">Pemenang Periode Ini</div>
         <div className="winner-content">
           <div className="winner-avatar" aria-hidden="true">
@@ -137,61 +158,64 @@ function PublicPage() {
         </div>
       </article>
 
-      <article className="panel stats-panel">
-        <h3>Ringkasan Pembayaran</h3>
-        <div className="stats">
-          <div>
-            <span>Sudah Bayar</span>
-            <strong>{stats.paidCount}</strong>
-          </div>
-          <div>
-            <span>Belum Bayar</span>
-            <strong>{stats.unpaidCount}</strong>
-          </div>
-          <div>
-            <span>Total Terkumpul</span>
-            <strong>{currency(stats.totalCollected)}</strong>
-          </div>
-        </div>
-      </article>
+        </article>
 
-      <article className="panel table-panel">
-        <h3>Status Peserta</h3>
-        {participantRows.length === 0 ? (
-          <p>Belum ada peserta.</p>
-        ) : (
-          <table>
-            <thead>
-              <tr>
-                <th>Nama Peserta</th>
-                <th>Status</th>
-                <th>Nominal</th>
-              </tr>
-            </thead>
-            <tbody>
-              {participantRows.map((item) => (
-                <tr key={item.id}>
-                  <td>{item.name}</td>
-                  <td>
-                    <span className={`badge ${item.status}`}>
-                      {item.status === 'paid' ? 'Sudah Bayar' : 'Belum Bayar'}
-                    </span>
-                  </td>
-                  <td>{currency(item.amount)}</td>
+        <article className="panel stats-panel">
+          <h3>Ringkasan Pembayaran</h3>
+          <div className="stats">
+            <div>
+              <span>Sudah Bayar</span>
+              <strong>{stats.paidCount}</strong>
+            </div>
+            <div>
+              <span>Belum Bayar</span>
+              <strong>{stats.unpaidCount}</strong>
+            </div>
+            <div>
+              <span>Total Terkumpul</span>
+              <strong>{currency(stats.totalCollected)}</strong>
+            </div>
+          </div>
+        </article>
+
+        <article className="panel table-panel">
+          <h3>Status Peserta</h3>
+          {participantRows.length === 0 ? (
+            <p>Belum ada peserta.</p>
+          ) : (
+            <table>
+              <thead>
+                <tr>
+                  <th>Nama Peserta</th>
+                  <th>Status</th>
+                  <th>Nominal</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </article>
+              </thead>
+              <tbody>
+                {participantRows.map((item) => (
+                  <tr key={item.id}>
+                    <td>{item.name}</td>
+                    <td>
+                      <span className={`badge ${item.status}`}>
+                        {item.status === 'paid' ? 'Sudah Bayar' : 'Belum Bayar'}
+                      </span>
+                    </td>
+                    <td>{currency(item.amount)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </article>
 
-      <article className="panel public-nav-panel">
-        <nav className="public-nav" aria-label="Navigasi halaman">
-          <Link to="/">Halaman Publik</Link>
-          <Link to="/admin">Panel Admin</Link>
-        </nav>
-      </article>
-    </section>
+        <article className="panel public-nav-panel">
+          <nav className="public-nav" aria-label="Navigasi halaman">
+            <Link to="/">Halaman Publik</Link>
+            <Link to="/admin">Panel Admin</Link>
+          </nav>
+        </article>
+      </section>
+    </>
   )
 }
 

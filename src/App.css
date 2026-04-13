@@ -149,6 +149,70 @@ main {
   grid-template-columns: 1fr;
 }
 
+.winner-popup-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(23, 19, 35, 0.5);
+  backdrop-filter: blur(2px);
+}
+
+.winner-popup-card {
+  width: min(480px, 100%);
+  position: relative;
+  border-radius: 22px;
+  border: 1px solid #c8b7ee;
+  background: linear-gradient(140deg, #efe3ff 0%, #dfeaff 56%, #d8f0ff 100%);
+  box-shadow: var(--shadow-2);
+  padding: 1.2rem 1.1rem 1rem;
+  animation: winnerReveal 0.32s ease-out both;
+}
+
+.winner-popup-kicker {
+  margin: 0;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #53398d;
+}
+
+.winner-popup-card h3 {
+  margin-top: 0.45rem;
+  font-size: clamp(1.3rem, 5vw, 1.9rem);
+  color: #2f2450;
+}
+
+.winner-popup-card p {
+  margin-top: 0.3rem;
+  color: #4c4660;
+  font-weight: 600;
+}
+
+.winner-popup-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  display: grid;
+  place-items: center;
+  border: 1px solid #d63a48;
+  background: #ff5f6d;
+  color: #fff;
+  font-weight: 700;
+  line-height: 1;
+  box-shadow: none;
+}
+
+.winner-popup-close:hover {
+  background: #f14d5d;
+}
+
 .panel {
   border: 1px solid var(--outline-2);
   background: var(--bg-surface);
@@ -511,6 +575,11 @@ button:disabled {
 
   .admin-logout-panel button {
     width: 100%;
+  }
+
+  .winner-popup-card {
+    border-radius: 18px;
+    padding: 1rem 0.9rem 0.9rem;
   }
 
   .winner-content {
