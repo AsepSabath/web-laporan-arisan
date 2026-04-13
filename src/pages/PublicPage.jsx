@@ -41,6 +41,19 @@ function readablePeriodLabel(label) {
   return `${formatter.format(new Date(startDate))} - ${formatter.format(new Date(endDate))}`
 }
 
+function getInitials(name) {
+  const value = String(name || '').trim()
+  if (!value) {
+    return '??'
+  }
+
+  return value
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((word) => word[0]?.toUpperCase() || '')
+    .join('')
+}
+
 function PublicPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -102,11 +115,25 @@ function PublicPage() {
     return <p className="status-message error">{error}</p>
   }
 
+  const winnerName = period?.winner_name?.trim() || ''
+  const winnerReady = Boolean(winnerName)
+
   return (
     <section className="layout-grid">
-      <article className="panel hero-panel">
-        <h2>Periode Aktif: {readablePeriodLabel(period?.label)}</h2>
-        <p className="winner">Pemenang: {period?.winner_name || 'Belum ditentukan'}</p>
+      <article className="panel hero-panel winner-spotlight">
+        <div className="winner-kicker">Pemenang Periode Ini</div>
+        <div className="winner-content">
+          <div className="winner-avatar" aria-hidden="true">
+            {winnerReady ? getInitials(winnerName) : '??'}
+          </div>
+          <div>
+            <h2 className="winner-title">{winnerReady ? winnerName : 'Belum ditentukan'}</h2>
+            <p className="winner-subtitle">Periode: {readablePeriodLabel(period?.label)}</p>
+            {!winnerReady ? (
+              <p className="winner-waiting">Menunggu update admin untuk nama pemenang.</p>
+            ) : null}
+          </div>
+        </div>
       </article>
 
       <article className="panel stats-panel">

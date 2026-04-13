@@ -73,10 +73,95 @@ main {
   background: linear-gradient(135deg, #eaddff 0%, #d7e3ff 42%, #d9f1ff 100%);
 }
 
+.winner-spotlight {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid #c8b7ee;
+  background: linear-gradient(135deg, #efe3ff 0%, #dfebff 52%, #d6f0ff 100%);
+  animation: winnerReveal 0.5s ease-out both;
+}
+
+.winner-spotlight::after {
+  content: '';
+  position: absolute;
+  width: 240px;
+  height: 240px;
+  right: -80px;
+  top: -90px;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 0) 72%);
+  pointer-events: none;
+}
+
+.winner-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.65rem;
+  border-radius: 999px;
+  padding: 0.3rem 0.72rem;
+  font-size: 0.77rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: rgba(255, 255, 255, 0.72);
+  color: #53398d;
+}
+
+.winner-content {
+  display: grid;
+  gap: 0.8rem;
+  align-items: center;
+  grid-template-columns: auto 1fr;
+}
+
+.winner-avatar {
+  width: 68px;
+  height: 68px;
+  border-radius: 20px;
+  display: grid;
+  place-items: center;
+  font-size: 1.45rem;
+  font-weight: 700;
+  color: #34215f;
+  background: linear-gradient(165deg, #ffffff 0%, #ece0ff 100%);
+  border: 1px solid #c8b7ee;
+  box-shadow: 0 8px 20px rgba(95, 59, 176, 0.18);
+}
+
+.winner-title {
+  font-size: clamp(1.65rem, 4.6vw, 2.4rem);
+  line-height: 1.1;
+  color: #2f2450;
+}
+
+.winner-subtitle {
+  margin-top: 0.35rem;
+  color: #4c4660;
+  font-weight: 600;
+}
+
+.winner-waiting {
+  margin-top: 0.35rem;
+  color: #6a617c;
+  font-size: 0.92rem;
+}
+
 .winner {
   margin-top: 0.5rem;
   font-size: 1.15rem;
   font-weight: 700;
+}
+
+@keyframes winnerReveal {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .stats {
@@ -305,5 +390,19 @@ button:disabled {
 
   .layout-grid:not(.admin-grid) .badge {
     min-width: 108px;
+  }
+
+  .winner-content {
+    grid-template-columns: 1fr;
+  }
+
+  .winner-avatar {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+  }
+
+  .winner-title {
+    font-size: clamp(1.45rem, 8vw, 2rem);
   }
 }
