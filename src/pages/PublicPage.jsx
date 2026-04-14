@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  getActivePeriod,
+  getPeriods,
   getParticipants,
   getPaymentsByPeriod,
 } from '../lib/api'
@@ -58,7 +58,10 @@ function getInitials(name) {
 function PublicPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [switchingPeriod, setSwitchingPeriod] = useState(false)
+  const [periods, setPeriods] = useState([])
   const [period, setPeriod] = useState(null)
+  const [selectedPeriodId, setSelectedPeriodId] = useState('')
   const [participants, setParticipants] = useState([])
   const [payments, setPayments] = useState([])
   const [showWinnerPopup, setShowWinnerPopup] = useState(false)
@@ -69,11 +72,19 @@ function PublicPage() {
         setLoading(true)
         setError('')
 
-        const [activePeriod, participantRows] = await Promise.all([
-          getActivePeriod(),
+        const [periodRows, participantRows] = await Promise.all([
+          getPeriods(),
           getParticipants(),
         ])
 
+        if (!periodRows.length) {
+          throw new Error('Belum ada periode yang tersedia')
+        }
+
+        const activePeriod = periodRows.find((item) => item.is_active) || periodRows[0]
+
+        setPeriods(periodRows)
+        setSelectedPeriodId(activePeriod.id)
         setPeriod(activePeriod)
         setParticipants(participantRows)
         const paymentRows = await getPaymentsByPeriod(activePeriod.id)
@@ -88,6 +99,32 @@ function PublicPage() {
 
     loadData()
   }, [])
+
+  async function onSelectPeriod(event) {
+    const nextPeriodId = event.target.value
+    if (!nextPeriodId || nextPeriodId === selectedPeriodId) {
+      return
+    }
+
+    try {
+      setSwitchingPeriod(true)
+      setError('')
+      setSelectedPeriodId(nextPeriodId)
+
+      const nextPeriod = periods.find((item) => item.id === nextPeriodId)
+      if (!nextPeriod) {
+        throw new Error('Periode tidak ditemukan')
+      }
+
+      const paymentRows = await getPaymentsByPeriod(nextPeriodId)
+      setPeriod(nextPeriod)
+      setPayments(paymentRows)
+    } catch (err) {
+      setError(err.message || 'Gagal memuat riwayat periode')
+    } finally {
+      setSwitchingPeriod(false)
+    }
+  }
 
   const participantRows = useMemo(() => {
     const paymentMap = new Map(payments.map((item) => [item.participant_id, item]))
@@ -157,6 +194,20 @@ function PublicPage() {
           </div>
         </div>
       </article>
+
+        <article className="panel stats-panel">
+          <h3>Riwayat Periode</h3>
+          <form className="inline-form period-select-form" onSubmit={(event) => event.preventDefault()}>
+            <select value={selectedPeriodId} onChange={onSelectPeriod} disabled={switchingPeriod}>
+              {periods.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {readablePeriodLabel(item.label)}{item.is_active ? ' (aktif)' : ''}
+                </option>
+              ))}
+            </select>
+            <span className="hint">{switchingPeriod ? 'Memuat periode...' : 'Pilih periode untuk melihat histori.'}</span>
+          </form>
+        </article>
 
         <article className="panel stats-panel">
           <h3>Ringkasan Pembayaran</h3>

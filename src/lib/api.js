@@ -14,6 +14,58 @@ export async function getActivePeriod() {
   return data
 }
 
+export async function getPeriods() {
+  const { data, error } = await supabase
+    .from('periods')
+    .select('*')
+    .order('is_active', { ascending: false })
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data
+}
+
+export async function createPeriod({ label, winnerName = '' }) {
+  const { data, error } = await supabase
+    .from('periods')
+    .insert({
+      label: label.trim(),
+      winner_name: winnerName.trim() || 'Belum ditentukan',
+      is_active: false,
+    })
+    .select('*')
+    .single()
+
+  if (error) {
+    throw new Error(error.message)
+  }
+
+  return data
+}
+
+export async function activatePeriod(periodId) {
+  const { error: deactivateError } = await supabase
+    .from('periods')
+    .update({ is_active: false })
+    .eq('is_active', true)
+
+  if (deactivateError) {
+    throw new Error(deactivateError.message)
+  }
+
+  const { error: activateError } = await supabase
+    .from('periods')
+    .update({ is_active: true })
+    .eq('id', periodId)
+
+  if (activateError) {
+    throw new Error(activateError.message)
+  }
+}
+
 export async function getParticipants() {
   const orderedQuery = await supabase
     .from('participants')

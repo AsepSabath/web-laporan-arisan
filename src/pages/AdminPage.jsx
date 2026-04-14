@@ -1,11 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
+  activatePeriod,
+  createPeriod,
   createParticipant,
   deleteParticipant,
   ensurePaymentsForPeriod,
-  getActivePeriod,
   getCurrentSession,
+  getPeriods,
   getParticipants,
   getPaymentsByPeriod,
   isCurrentUserAdmin,
@@ -63,10 +65,15 @@ function AdminPage() {
   const [error, setError] = useState('')
   const [sessionReady, setSessionReady] = useState(false)
   const [isAdmin, setIsAdmin] = useState(false)
+  const [periods, setPeriods] = useState([])
+  const [activePeriod, setActivePeriod] = useState(null)
   const [period, setPeriod] = useState(null)
+  const [selectedPeriodId, setSelectedPeriodId] = useState('')
   const [participants, setParticipants] = useState([])
   const [payments, setPayments] = useState([])
   const [newParticipant, setNewParticipant] = useState('')
+  const [newPeriodStartDate, setNewPeriodStartDate] = useState('')
+  const [newPeriodEndDate, setNewPeriodEndDate] = useState('')
   const [winnerName, setWinnerName] = useState('')
   const [periodStartDate, setPeriodStartDate] = useState('')
   const [periodEndDate, setPeriodEndDate] = useState('')
@@ -102,19 +109,31 @@ function AdminPage() {
     }
   }
 
-  async function loadAdminData() {
-    const [activePeriod, participantRows] = await Promise.all([
-      getActivePeriod(),
+  async function loadAdminData(nextPeriodId) {
+    const [periodRows, participantRows] = await Promise.all([
+      getPeriods(),
       getParticipants(),
     ])
 
-    await ensurePaymentsForPeriod(activePeriod.id, participantRows)
+    if (!periodRows.length) {
+      throw new Error('Belum ada periode yang tersedia')
+    }
 
-    const paymentRows = await getPaymentsByPeriod(activePeriod.id)
+    const nextActivePeriod = periodRows.find((item) => item.is_active) || periodRows[0]
+    const targetPeriod =
+      periodRows.find((item) => item.id === nextPeriodId) ||
+      periodRows.find((item) => item.id === selectedPeriodId) ||
+      nextActivePeriod
 
-    setPeriod(activePeriod)
-    setWinnerName(activePeriod.winner_name || '')
-    const { startDate, endDate } = parseRangeFromLabel(activePeriod.label)
+    await ensurePaymentsForPeriod(nextActivePeriod.id, participantRows)
+    const paymentRows = await getPaymentsByPeriod(targetPeriod.id)
+
+    setPeriods(periodRows)
+    setActivePeriod(nextActivePeriod)
+    setSelectedPeriodId(targetPeriod.id)
+    setPeriod(targetPeriod)
+    setWinnerName(targetPeriod.winner_name || '')
+    const { startDate, endDate } = parseRangeFromLabel(targetPeriod.label)
     setPeriodStartDate(startDate)
     setPeriodEndDate(endDate)
     setParticipants(participantRows)
@@ -132,6 +151,73 @@ function AdminPage() {
       }
     })
   }, [participants, payments])
+
+  const isViewingActivePeriod = Boolean(period?.id && activePeriod?.id && period.id === activePeriod.id)
+
+  async function onSelectPeriod(event) {
+    const nextPeriodId = event.target.value
+    if (!nextPeriodId || nextPeriodId === selectedPeriodId) {
+      return
+    }
+
+    try {
+      setSaving(true)
+      setError('')
+      await loadAdminData(nextPeriodId)
+    } catch (err) {
+      setError(err.message || 'Gagal memuat riwayat periode')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function onCreateNewPeriod(event) {
+    event.preventDefault()
+
+    if (!newPeriodStartDate || !newPeriodEndDate) {
+      return
+    }
+
+    if (newPeriodStartDate > newPeriodEndDate) {
+      setError('Tanggal mulai periode baru tidak boleh lebih besar dari tanggal akhir.')
+      return
+    }
+
+    try {
+      setSaving(true)
+      setError('')
+
+      const label = formatLabelFromDates(newPeriodStartDate, newPeriodEndDate)
+      const createdPeriod = await createPeriod({ label, winnerName: '' })
+      await activatePeriod(createdPeriod.id)
+      await ensurePaymentsForPeriod(createdPeriod.id, participants)
+      setNewPeriodStartDate('')
+      setNewPeriodEndDate('')
+      await loadAdminData(createdPeriod.id)
+    } catch (err) {
+      setError(err.message || 'Gagal membuat periode baru')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  async function onActivateSelectedPeriod() {
+    if (!period?.id || period.is_active) {
+      return
+    }
+
+    try {
+      setSaving(true)
+      setError('')
+      await activatePeriod(period.id)
+      await ensurePaymentsForPeriod(period.id, participants)
+      await loadAdminData(period.id)
+    } catch (err) {
+      setError(err.message || 'Gagal mengaktifkan periode')
+    } finally {
+      setSaving(false)
+    }
+  }
 
   async function onLogin(event) {
     event.preventDefault()
@@ -162,6 +248,10 @@ function AdminPage() {
       setError('')
       await signOutAdmin()
       setIsAdmin(false)
+      setPeriods([])
+      setActivePeriod(null)
+      setPeriod(null)
+      setSelectedPeriodId('')
       setParticipants([])
       setPayments([])
     } catch (err) {
@@ -174,14 +264,14 @@ function AdminPage() {
   async function onAddParticipant(event) {
     event.preventDefault()
 
-    if (!newParticipant.trim() || !period?.id) {
+    if (!newParticipant.trim() || !activePeriod?.id || !isViewingActivePeriod) {
       return
     }
 
     try {
       setSaving(true)
       setError('')
-      await createParticipant(newParticipant, period.id)
+      await createParticipant(newParticipant, activePeriod.id)
       setNewParticipant('')
       await loadAdminData()
     } catch (err) {
@@ -192,6 +282,10 @@ function AdminPage() {
   }
 
   async function onDeleteParticipant(participantId) {
+    if (!isViewingActivePeriod) {
+      return
+    }
+
     try {
       setSaving(true)
       setError('')
@@ -205,6 +299,10 @@ function AdminPage() {
   }
 
   async function onUpdatePayment(paymentId, status, amount) {
+    if (!isViewingActivePeriod) {
+      return
+    }
+
     try {
       setSaving(true)
       setError('')
@@ -220,7 +318,7 @@ function AdminPage() {
   async function onUpdateWinner(event) {
     event.preventDefault()
 
-    if (!period?.id) {
+    if (!period?.id || !isViewingActivePeriod) {
       return
     }
 
@@ -237,6 +335,10 @@ function AdminPage() {
   }
 
   async function onMoveParticipant(participantId, direction) {
+    if (!isViewingActivePeriod) {
+      return
+    }
+
     const currentIndex = participants.findIndex((participant) => participant.id === participantId)
 
     if (currentIndex === -1) {
@@ -268,7 +370,7 @@ function AdminPage() {
   async function onUpdatePeriodDate(event) {
     event.preventDefault()
 
-    if (!period?.id || !periodStartDate || !periodEndDate) {
+    if (!period?.id || !periodStartDate || !periodEndDate || !isViewingActivePeriod) {
       return
     }
 
@@ -338,7 +440,53 @@ function AdminPage() {
       <article className="panel hero-panel admin-spotlight">
         <div className="winner-kicker">Area Pengelolaan</div>
         <h2 className="admin-title">Panel Admin</h2>
-        <p className="admin-subtitle">Periode aktif: {readablePeriodLabel(period?.label)}</p>
+        <p className="admin-subtitle">Periode aktif: {readablePeriodLabel(activePeriod?.label)}</p>
+        <p className="hint">Periode dilihat: {readablePeriodLabel(period?.label)}</p>
+        {!isViewingActivePeriod ? (
+          <p className="status-message">Mode riwayat aktif. Data periode ini bersifat baca saja.</p>
+        ) : null}
+      </article>
+
+      <article className="panel">
+        <h3>Riwayat Periode</h3>
+        <form className="inline-form period-select-form" onSubmit={(event) => event.preventDefault()}>
+          <select value={selectedPeriodId} onChange={onSelectPeriod} disabled={saving}>
+            {periods.map((item) => (
+              <option key={item.id} value={item.id}>
+                {readablePeriodLabel(item.label)}{item.is_active ? ' (aktif)' : ''}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            className="ghost"
+            onClick={onActivateSelectedPeriod}
+            disabled={saving || !period || period.is_active}
+          >
+            Jadikan Aktif
+          </button>
+        </form>
+      </article>
+
+      <article className="panel">
+        <h3>Buat Periode Baru</h3>
+        <form onSubmit={onCreateNewPeriod} className="inline-form period-form">
+          <input
+            type="date"
+            value={newPeriodStartDate}
+            onChange={(event) => setNewPeriodStartDate(event.target.value)}
+            required
+          />
+          <input
+            type="date"
+            value={newPeriodEndDate}
+            onChange={(event) => setNewPeriodEndDate(event.target.value)}
+            required
+          />
+          <button type="submit" disabled={saving}>
+            Buat & Aktifkan
+          </button>
+        </form>
       </article>
 
       <article className="panel">
@@ -348,15 +496,17 @@ function AdminPage() {
             type="date"
             value={periodStartDate}
             onChange={(event) => setPeriodStartDate(event.target.value)}
+            disabled={saving || !isViewingActivePeriod}
             required
           />
           <input
             type="date"
             value={periodEndDate}
             onChange={(event) => setPeriodEndDate(event.target.value)}
+            disabled={saving || !isViewingActivePeriod}
             required
           />
-          <button type="submit" disabled={saving}>
+          <button type="submit" disabled={saving || !isViewingActivePeriod}>
             Simpan Tanggal
           </button>
         </form>
@@ -370,9 +520,10 @@ function AdminPage() {
             value={winnerName}
             onChange={(event) => setWinnerName(event.target.value)}
             placeholder="Nama pemenang"
+            disabled={saving || !isViewingActivePeriod}
             required
           />
-          <button type="submit" disabled={saving}>
+          <button type="submit" disabled={saving || !isViewingActivePeriod}>
             Simpan
           </button>
         </form>
@@ -386,9 +537,10 @@ function AdminPage() {
             value={newParticipant}
             onChange={(event) => setNewParticipant(event.target.value)}
             placeholder="Nama peserta"
+            disabled={saving || !isViewingActivePeriod}
             required
           />
-          <button type="submit" disabled={saving}>
+          <button type="submit" disabled={saving || !isViewingActivePeriod}>
             Tambah
           </button>
         </form>
@@ -419,7 +571,12 @@ function AdminPage() {
                         type="button"
                         className="ghost mini-btn"
                         onClick={() => onMoveParticipant(participant.id, 'up')}
-                        disabled={saving || !payment || participant.id === paymentRows[0]?.participant.id}
+                        disabled={
+                          saving ||
+                          !isViewingActivePeriod ||
+                          !payment ||
+                          participant.id === paymentRows[0]?.participant.id
+                        }
                         aria-label={`Naikkan urutan ${participant.name}`}
                       >
                         Naik
@@ -430,6 +587,7 @@ function AdminPage() {
                         onClick={() => onMoveParticipant(participant.id, 'down')}
                         disabled={
                           saving ||
+                          !isViewingActivePeriod ||
                           !payment ||
                           participant.id === paymentRows[paymentRows.length - 1]?.participant.id
                         }
@@ -445,7 +603,7 @@ function AdminPage() {
                       onChange={(event) =>
                         onUpdatePayment(payment.id, event.target.value, payment.amount)
                       }
-                      disabled={saving || !payment}
+                      disabled={saving || !isViewingActivePeriod || !payment}
                     >
                       <option value="unpaid">Belum Bayar</option>
                       <option value="paid">Sudah Bayar</option>
@@ -459,7 +617,7 @@ function AdminPage() {
                       onBlur={(event) =>
                         onUpdatePayment(payment.id, payment.status, event.target.value)
                       }
-                      disabled={saving || !payment}
+                      disabled={saving || !isViewingActivePeriod || !payment}
                     />
                   </td>
                   <td>
@@ -467,7 +625,7 @@ function AdminPage() {
                       type="button"
                       className="danger"
                       onClick={() => onDeleteParticipant(participant.id)}
-                      disabled={saving}
+                      disabled={saving || !isViewingActivePeriod}
                     >
                       Hapus
                     </button>
