@@ -196,20 +196,6 @@ function PublicPage() {
       </article>
 
         <article className="panel stats-panel">
-          <h3>Riwayat Periode</h3>
-          <form className="inline-form period-select-form" onSubmit={(event) => event.preventDefault()}>
-            <select value={selectedPeriodId} onChange={onSelectPeriod} disabled={switchingPeriod}>
-              {periods.map((item) => (
-                <option key={item.id} value={item.id}>
-                  {readablePeriodLabel(item.label)}{item.is_active ? ' (aktif)' : ''}
-                </option>
-              ))}
-            </select>
-            <span className="hint">{switchingPeriod ? 'Memuat periode...' : 'Pilih periode untuk melihat histori.'}</span>
-          </form>
-        </article>
-
-        <article className="panel stats-panel">
           <h3>Ringkasan Pembayaran</h3>
           <div className="stats">
             <div>
@@ -255,6 +241,20 @@ function PublicPage() {
               </tbody>
             </table>
           )}
+        </article>
+
+        <article className="panel stats-panel">
+          <h3>Riwayat Periode</h3>
+          <form className="inline-form period-select-form" onSubmit={(event) => event.preventDefault()}>
+            <select value={selectedPeriodId} onChange={onSelectPeriod} disabled={switchingPeriod}>
+              {periods.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {readablePeriodLabel(item.label)}{item.is_active ? ' (aktif)' : ''}
+                </option>
+              ))}
+            </select>
+            <span className="hint">{switchingPeriod ? 'Memuat periode...' : 'Pilih periode untuk melihat histori.'}</span>
+          </form>
         </article>
 
         <article className="panel public-nav-panel">
